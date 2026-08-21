@@ -931,7 +931,7 @@ defmodule String do
   end
 
   def upcase(string, :default) when is_binary(string) do
-    String.Unicode.upcase(string, [], :default)
+    upcase_default(string, string, 0)
   end
 
   def upcase(string, :ascii) when is_binary(string) do
@@ -957,6 +957,15 @@ defmodule String do
 
   defp upcase_ascii(<<char, rest::bits>>, acc), do: upcase_ascii(rest, <<acc::binary, char>>)
   defp upcase_ascii(<<>>, acc), do: acc
+
+  defp upcase_default(<<char, rest::bits>>, original, skip)
+       when char < 128 and (char < ?a or char > ?z),
+       do: upcase_default(rest, original, skip + 1)
+
+  defp upcase_default(<<>>, original, _skip), do: original
+
+  defp upcase_default(rest, original, skip),
+    do: String.Unicode.upcase(rest, [binary_part(original, 0, skip)], :default)
 
   @doc """
   Converts all characters in the given string to lowercase according to `mode`.
@@ -1011,7 +1020,7 @@ defmodule String do
   end
 
   def downcase(string, :default) when is_binary(string) do
-    String.Unicode.downcase(string, [], :default)
+    downcase_default(string, string, 0)
   end
 
   def downcase(string, :ascii) when is_binary(string) do
@@ -1037,6 +1046,15 @@ defmodule String do
 
   defp downcase_ascii(<<char, rest::bits>>, acc), do: downcase_ascii(rest, <<acc::binary, char>>)
   defp downcase_ascii(<<>>, acc), do: acc
+
+  defp downcase_default(<<char, rest::bits>>, original, skip)
+       when char < 128 and (char < ?A or char > ?Z),
+       do: downcase_default(rest, original, skip + 1)
+
+  defp downcase_default(<<>>, original, _skip), do: original
+
+  defp downcase_default(rest, original, skip),
+    do: String.Unicode.downcase(rest, [binary_part(original, 0, skip)], :default)
 
   @doc """
   Converts the first character in the given string to
